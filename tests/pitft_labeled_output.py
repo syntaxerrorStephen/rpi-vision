@@ -7,12 +7,17 @@ import os
 import sys
 import numpy as np
 import subprocess
+import signal
 
 CONFIDENCE_THRESHOLD = 0.5   # at what confidence level do we say we detected a thing
 PERSISTANCE_THRESHOLD = 0.25  # what percentage of the time we have to have seen a thing
 
 os.environ['SDL_FBDEV'] = "/dev/fb1"
 os.environ['SDL_VIDEODRIVER'] = "fbcon"
+
+def dont_quit(signal, frame):
+   print('Caught signal: {}'.format(signal))
+signal.signal(signal.SIGHUP, dont_quit)
 
 # App
 from rpi_vision.agent.capture import PiCameraStream
@@ -43,7 +48,7 @@ def main(args):
 
     # initialize the display
     pygame.init()
-    screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.mouse.set_visible(False)
     screen.fill((0,0,0))
     try:
@@ -52,12 +57,12 @@ def main(args):
     except pygame.error:
         pass
     pygame.display.update()
-    
+
     # use the default font
     smallfont = pygame.font.Font(None, 24)
     medfont = pygame.font.Font(None, 36)
     bigfont = pygame.font.Font(None, 48)
-    
+
     model = MobileNetV2Base(include_top=args.include_top)
     capture_manager.start()
 
