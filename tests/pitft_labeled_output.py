@@ -26,7 +26,11 @@ from rpi_vision.models.mobilenet_v2 import MobileNetV2Base
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 
-capture_manager = PiCameraStream(resolution=(320, 320), rotation=180, preview=False)
+# initialize the display
+pygame.init()
+screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+
+capture_manager = PiCameraStream(resolution=(screen.get_width(), screen.get_height()), rotation=180, preview=False)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -46,14 +50,12 @@ last_spoken = None
 def main(args):
     global last_spoken
 
-    # initialize the display
-    pygame.init()
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     pygame.mouse.set_visible(False)
     screen.fill((0,0,0))
     try:
         splash = pygame.image.load(os.path.dirname(sys.argv[0])+'/bchatsplash.bmp')
-        screen.blit(splash, (0, 0))
+        screen.blit(splash, ((screen.get_width() / 2) - (splash.get_width() / 2),
+                    (screen.get_height() / 2) - (splash.get_height() / 2)))
     except pygame.error:
         pass
     pygame.display.update()
