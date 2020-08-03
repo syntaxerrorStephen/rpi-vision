@@ -25,7 +25,7 @@ logging.getLogger().setLevel(logging.INFO)
 pygame.init()
 screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 
-capture_manager = PiCameraStream(resolution=(screen.get_width(), screen.get_height()), rotation=180, preview=False)
+capture_manager = PiCameraStream(resolution=(max(320, screen.get_width()), max(240, screen.get_height())), rotation=180, preview=False)
 
 def parse_args():
     parser = argparse.ArgumentParser()
