@@ -24,8 +24,7 @@ logging.getLogger().setLevel(logging.INFO)
 # initialize the display
 pygame.init()
 screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
-
-capture_manager = PiCameraStream(resolution=(max(320, screen.get_width()), max(240, screen.get_height())), rotation=180, preview=False)
+capture_manager = None
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -36,6 +35,10 @@ def parse_args():
     parser.add_argument('--tflite',
                         dest='tflite', action='store_true', default=False,
                         help='Convert base model to TFLite FlatBuffer, then load model into TFLite Python Interpreter')
+
+    parser.add_argument('--rotation', type=int, choices=[0, 90, 180, 270],
+                        dest='rotation', action='store', default=0,
+                        help='Rotate everything on the display by this amount')
     args = parser.parse_args()
     return args
 
@@ -43,12 +46,20 @@ last_seen = [None] * 10
 last_spoken = None
 
 def main(args):
-    global last_spoken
+    global last_spoken, capture_manager
+
+    if args.rotation in (0, 180):
+        capture_manager = PiCameraStream(resolution=(max(320, screen.get_width()), max(240, screen.get_height())), rotation=180, preview=False)
+        buffer = pygame.Surface((screen.get_width(), screen.get_height()))
+    else:
+        capture_manager = PiCameraStream(resolution=(max(240, screen.get_height()), max(320, screen.get_width())), rotation=180, preview=False)
+        buffer = pygame.Surface((screen.get_height(), screen.get_width()))
 
     pygame.mouse.set_visible(False)
     screen.fill((0,0,0))
     try:
         splash = pygame.image.load(os.path.dirname(sys.argv[0])+'/bchatsplash.bmp')
+        splash = pygame.transform.rotate(splash, args.rotation)
         screen.blit(splash, ((screen.get_width() / 2) - (splash.get_width() / 2),
                     (screen.get_height() / 2) - (splash.get_height() / 2)))
     except pygame.error:
@@ -66,13 +77,14 @@ def main(args):
     while not capture_manager.stopped:
         if capture_manager.frame is None:
             continue
+        buffer.fill((0,0,0))
         frame = capture_manager.read()
         # get the raw data frame & swap red & blue channels
         previewframe = np.ascontiguousarray(np.flip(np.array(capture_manager.frame), 2))
         # make it an image
         img = pygame.image.frombuffer(previewframe, capture_manager.camera.resolution, 'RGB')
         # draw it!
-        screen.blit(img, (0, 0))
+        buffer.blit(img, (0, 0))
 
         timestamp = time.monotonic()
         if args.tflite:
@@ -87,8 +99,8 @@ def main(args):
         # add FPS on top corner of image
         fpstext = "%0.1f FPS" % (1/delta,)
         fpstext_surface = smallfont.render(fpstext, True, (255, 0, 0))
-        fpstext_position = (screen.get_width()-10, 10) # near the top right corner
-        screen.blit(fpstext_surface, fpstext_surface.get_rect(topright=fpstext_position))
+        fpstext_position = (buffer.get_width()-10, 10) # near the top right corner
+        buffer.blit(fpstext_surface, fpstext_surface.get_rect(topright=fpstext_position))
 
         for p in prediction:
             label, name, conf = p
@@ -102,7 +114,7 @@ def main(args):
                 inferred_times = last_seen.count(name)
                 if inferred_times / len(last_seen) > PERSISTANCE_THRESHOLD:  # over quarter time
                     persistant_obj = True
-                
+
                 detecttext = name.replace("_", " ")
                 detecttextfont = None
                 for f in (bigfont, medfont, smallfont):
@@ -114,9 +126,9 @@ def main(args):
                     detecttextfont = smallfont # well, we'll do our best
                 detecttext_color = (0, 255, 0) if persistant_obj else (255, 255, 255)
                 detecttext_surface = detecttextfont.render(detecttext, True, detecttext_color)
-                detecttext_position = (screen.get_width()//2,
-                                       screen.get_height() - detecttextfont.size(detecttext)[1])
-                screen.blit(detecttext_surface, detecttext_surface.get_rect(center=detecttext_position))
+                detecttext_position = (buffer.get_width()//2,
+                                       buffer.get_height() - detecttextfont.size(detecttext)[1])
+                buffer.blit(detecttext_surface, detecttext_surface.get_rect(center=detecttext_position))
 
                 if persistant_obj and last_spoken != detecttext:
                     os.system('echo %s | festival --tts & ' % detecttext)
@@ -128,6 +140,7 @@ def main(args):
             if last_seen.count(None) == len(last_seen):
                 last_spoken = None
 
+        screen.blit(pygame.transform.rotate(buffer, args.rotation), (0,0))
         pygame.display.update()
 
 if __name__ == "__main__":
