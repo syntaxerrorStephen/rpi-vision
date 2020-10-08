@@ -104,17 +104,17 @@ def main(args):
         # add FPS & temp on top corner of image
         fpstext = "%0.1f FPS" % (1/delta,)
         fpstext_surface = smallfont.render(fpstext, True, (255, 0, 0))
-        fpstext_position = (screen.get_width()-10, 10) # near the top right corner
+        fpstext_position = (buffer.get_width()-10, 10) # near the top right corner
         buffer.blit(fpstext_surface, fpstext_surface.get_rect(topright=fpstext_position))
         try:
             temp = int(open("/sys/class/thermal/thermal_zone0/temp").read()) / 1000
             temptext = "%d\N{DEGREE SIGN}C" % temp
             temptext_surface = smallfont.render(temptext, True, (255, 0, 0))
-            temptext_position = (screen.get_width()-10, 30) # near the top right corner
+            temptext_position = (buffer.get_width()-10, 30) # near the top right corner
             buffer.blit(temptext_surface, temptext_surface.get_rect(topright=temptext_position))
         except OSError:
             pass
-   
+
         for p in prediction:
             label, name, conf = p
             if conf > CONFIDENCE_THRESHOLD:
