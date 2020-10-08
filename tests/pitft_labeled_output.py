@@ -53,11 +53,14 @@ last_spoken = None
 def main(args):
     global last_spoken, capture_manager
 
-    if args.rotation in (0, 180):
+    if screen.get_width() == screen.get_height() or args.roation in (0, 180):
         capture_manager = PiCameraStream(resolution=(max(320, screen.get_width()), max(240, screen.get_height())), rotation=180, preview=False)
-        buffer = pygame.Surface((screen.get_width(), screen.get_height()))
     else:
         capture_manager = PiCameraStream(resolution=(max(240, screen.get_height()), max(320, screen.get_width())), rotation=180, preview=False)
+
+    if args.rotation in (0, 180):
+        buffer = pygame.Surface((screen.get_width(), screen.get_height()))
+    else:
         buffer = pygame.Surface((screen.get_height(), screen.get_width()))
 
     pygame.mouse.set_visible(False)
