@@ -8,8 +8,11 @@ import sys
 import numpy as np
 import subprocess
 
-CONFIDENCE_THRESHOLD = 0.5   # at what confidence level do we say we detected a thing
-PERSISTANCE_THRESHOLD = 0.25  # what percentage of the time we have to have seen a thing
+confidence = float(input("Input confidence varaible: "))
+persistence = float(input("Input persistence varaible: "))
+
+#CONFIDENCE_THRESHOLD = 0.5   # at what confidence level do we say we detected a thing
+#PERSISTANCE_THRESHOLD = 0.25  # what percentage of the time we have to have seen a thing
 
 os.environ['SDL_FBDEV'] = "/dev/fb1"
 os.environ['SDL_VIDEODRIVER'] = "fbcon"
