@@ -8,8 +8,8 @@ import sys
 import numpy as np
 import subprocess
 
-confidence = float(input("Input confidence varaible: "))
-persistence = float(input("Input persistence varaible: "))
+CONFIDENCE_THRESHOLD = float(input("Input confidence varaible: "))
+PERSISTANCE_THRESHOLD = float(input("Input persistence varaible: "))
 
 #CONFIDENCE_THRESHOLD = 0.5   # at what confidence level do we say we detected a thing
 #PERSISTANCE_THRESHOLD = 0.25  # what percentage of the time we have to have seen a thing
