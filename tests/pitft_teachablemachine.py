@@ -8,8 +8,11 @@ import sys
 import numpy as np
 import subprocess
 
-CONFIDENCE_THRESHOLD = float(input("Input confidence varaible: "))
-PERSISTANCE_THRESHOLD = float(input("Input persistence varaible: "))
+# API KEY HERE
+myAPI = "API KEY GOES HERE"  #your key from your own thingspeak account. Put yours here.
+
+confidence = float(input("Input confidence varaible: "))
+persistence = float(input("Input persistence varaible: "))
 
 #CONFIDENCE_THRESHOLD = 0.5   # at what confidence level do we say we detected a thing
 #PERSISTANCE_THRESHOLD = 0.25  # what percentage of the time we have to have seen a thing
@@ -29,6 +32,15 @@ pygame.init()
 screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 
 capture_manager = PiCameraStream(resolution=(screen.get_width(), screen.get_height()), rotation=180, preview=False)
+
+# the thingspeak bit
+def updateThingSpeak(): 
+   print('Now updating thingspeak') 
+   baseURL = 'https://api.thingspeak.com/update?api_key=%s' % myAPI    
+
+   f = urlopen(baseURL + "&field1=%s" % (temperature) + "&field2=%s" % (switch_position) ) 
+   print ("Success! I uploaded data point No. ", f.read())
+   f.close()
 
 def parse_args():
     parser = argparse.ArgumentParser()
